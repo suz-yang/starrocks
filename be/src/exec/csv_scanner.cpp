@@ -250,7 +250,23 @@ Status CSVScanner::_init_reader() {
             LOG(WARNING) << "Failed to create sequential files. status: " << st.to_string();
             return st;
         }
-
+{
+        pid_t pid;
+        pid = syscall(SYS_gettid);
+        char thread_name[16] = {0};
+        pthread_getname_np(pthread_self(), thread_name, sizeof(thread_name));
+        LOG(INFO) << "suzhi debug csv scanner "
+                  << "[" << pid << "] " << "[" << thread_name << "] "
+                  << "curr_file_index:" << _curr_file_index << ", "
+                  << "range_desc:["
+                       << "file_type:" << range_desc.file_type << ", "
+                       << "format_type:" << range_desc.format_type << ", "
+                       << "splittable:" << range_desc.splittable << ", "
+                       << "path:" << range_desc.path << ", "
+                       << "start_offset:" << range_desc.start_offset << ", "
+                       << "size:" << range_desc.size << ", "
+                  << "]";
+}
         _curr_reader = std::make_unique<ScannerCSVReader>(file, _state, _parse_options);
         _curr_reader->set_counter(_counter);
         if (_scan_range.ranges[_curr_file_index].size > 0 &&

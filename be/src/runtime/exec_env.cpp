@@ -637,7 +637,8 @@ Status ExecEnv::init(const std::vector<StorePath>& store_paths, bool as_cn) {
                                        ? CpuInfo::num_cores()
                                        : config::pipeline_scan_thread_pool_thread_num;
 
-    const int connector_num_io_threads = int(config::pipeline_connector_scan_thread_num_per_cpu * CpuInfo::num_cores());
+    // const int connector_num_io_threads = int(config::pipeline_connector_scan_thread_num_per_cpu * CpuInfo::num_cores());
+    const int connector_num_io_threads = 2;
     CHECK_GT(connector_num_io_threads, 0) << "pipeline_connector_scan_thread_num_per_cpu should greater than 0";
 
     if (config::hdfs_client_enable_hedged_read) {
@@ -656,6 +657,7 @@ Status ExecEnv::init(const std::vector<StorePath>& store_paths, bool as_cn) {
             CpuInfo::num_cores(), _max_executor_threads, num_io_threads, connector_num_io_threads,
             CpuInfo::get_core_ids(), enable_bind_cpus, config::enable_resource_group_cpu_borrowing,
             StarRocksMetrics::instance()->get_pipeline_executor_metrics());
+    LOG(INFO) << "suzhi debug pipeline executor set cofig:" << executors_manager_opts.to_string();
     _workgroup_manager = std::make_unique<workgroup::WorkGroupManager>(std::move(executors_manager_opts));
     RETURN_IF_ERROR(_workgroup_manager->start());
     workgroup::DefaultWorkGroupInitialization default_workgroup_init;

@@ -52,17 +52,21 @@ Status RowsetFactory::create_rowset(const TabletSchemaCSPtr& schema, const std::
 }
 
 Status RowsetFactory::create_rowset_writer(const RowsetWriterContext& context, std::unique_ptr<RowsetWriter>* output) {
+    LOG(INFO) << "suzhi debug create rowset writer, writer_type:" << context.writer_type << ", partial_update_mode:" << context.partial_update_mode;
     if (context.writer_type == kHorizontal) {
         if (context.partial_update_mode == PartialUpdateMode::COLUMN_UPSERT_MODE ||
             context.partial_update_mode == PartialUpdateMode::COLUMN_UPDATE_MODE) {
             // rowset writer for partial update in column mode
             *output = std::make_unique<HorizontalUpdateRowsetWriter>(context);
+            LOG(INFO) << "suzhi debug create HorizontalUpdateRowsetWriter";
         } else {
             *output = std::make_unique<HorizontalRowsetWriter>(context);
+            LOG(INFO) << "suzhi debug create HorizontalRowsetWriter";
         }
     } else {
         DCHECK(context.writer_type == kVertical);
         *output = std::make_unique<VerticalRowsetWriter>(context);
+        LOG(INFO) << "suzhi debug create VerticalRowsetWriter";
     }
     return (*output)->init();
 }

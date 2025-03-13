@@ -802,6 +802,7 @@ Status HorizontalRowsetWriter::flush() {
 }
 
 StatusOr<RowsetSharedPtr> HorizontalRowsetWriter::build() {
+    _tmp_segment_files.clear();
     if (!_tmp_segment_files.empty()) {
         RETURN_IF_ERROR(_final_merge());
     }

@@ -190,6 +190,8 @@ void LocalTabletsChannel::add_chunk(Chunk* chunk, const PTabletWriterAddChunkReq
         response->mutable_status()->add_error_msgs("no packet_seq in PTabletWriterAddChunkRequest");
         return;
     }
+    response->mutable_status()->set_status_code(TStatusCode::OK);
+    return;
 
     {
         std::lock_guard lock(_senders[request.sender_id()].lock);

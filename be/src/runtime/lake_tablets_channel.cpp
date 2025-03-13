@@ -395,6 +395,8 @@ void LakeTabletsChannel::add_chunk(Chunk* chunk, const PTabletWriterAddChunkRequ
         response->mutable_status()->add_error_msgs("out-of-order packet");
         return;
     }
+    response->mutable_status()->set_status_code(TStatusCode::OK);
+    return;
 
     auto res = _create_write_context(chunk, request, response);
     if (!res.ok()) {

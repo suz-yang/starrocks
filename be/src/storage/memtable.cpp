@@ -327,6 +327,18 @@ Status MemTable::finalize() {
 }
 
 Status MemTable::flush(SegmentPB* seg_info, bool eos, int64_t* flush_data_size) {
+{
+    pid_t pid;
+    pid = syscall(SYS_gettid);
+    char thread_name[16] = {0};
+    pthread_getname_np(pthread_self(), thread_name, sizeof(thread_name));
+    LOG(INFO) << "suzhi debug memtable flush "
+              << "[" << pid << "] " << "[" << thread_name << "] "
+              << "tablet_id:" << _tablet_id << ", "
+              << "memory_usage:" << memory_usage() << ", "
+              << "write_buffer_size:" << write_buffer_size() << ", "
+              << "write_buffer_rows:" << write_buffer_rows();
+}
     if (UNLIKELY(_result_chunk == nullptr)) {
         return Status::OK();
     }

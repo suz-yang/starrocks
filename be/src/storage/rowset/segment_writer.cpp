@@ -68,9 +68,25 @@ SegmentWriter::SegmentWriter(std::unique_ptr<WritableFile> wfile, uint32_t segme
           _opts(std::move(opts)),
           _wfile(std::move(wfile)) {
     CHECK_NOTNULL(_wfile.get());
+    append_chunk_timer_ = new RuntimeProfile::Counter(TUnit::TIME_NS, TCounterMergeType::MERGE_ALL, 0)
+    finalize_timer_ = new RuntimeProfile::Counter(TUnit::TIME_NS, TCounterMergeType::MERGE_ALL, 0)
 }
 
-SegmentWriter::~SegmentWriter() = default;
+SegmentWriter::~SegmentWriter()
+{
+    pid_t pid;
+    pid = syscall(SYS_gettid);
+    char thread_name[16] = {0};
+    pthread_getname_np(pthread_self(), thread_name, sizeof(thread_name));
+    LOG(INFO) << "suzhi debug segment write "
+              << "[" << pid << "] " << "[" << thread_name << "] "
+              << "filename:" << _wfile->filename() << ", "
+              << "num_rows:" << _num_rows << ", "
+              << "append_chunk_timer:" << append_chunk_timer_->value() << ", "
+              << "finalize_timer:" << finalize_timer_->value();
+    delete append_chunk_timer_;
+    delete finalize_timer_;
+}
 
 const std::string& SegmentWriter::segment_path() const {
     return _wfile->filename();
@@ -271,6 +287,7 @@ uint64_t SegmentWriter::current_filesz() const {
 }
 
 Status SegmentWriter::finalize(uint64_t* segment_file_size, uint64_t* index_size, uint64_t* footer_position) {
+    SCOPED_TIMER(finalize_time_);
     RETURN_IF_ERROR(finalize_columns(index_size));
     *footer_position = _wfile->size();
     return finalize_footer(segment_file_size);
@@ -384,6 +401,7 @@ Status SegmentWriter::_write_raw_data(const std::vector<Slice>& slices) {
 }
 
 Status SegmentWriter::append_chunk(const Chunk& chunk) {
+    SCOPED_TIMER(append_chunk_time_);
     size_t chunk_num_rows = chunk.num_rows();
     size_t chunk_num_columns = chunk.num_columns();
     for (size_t i = 0; i < chunk_num_columns; ++i) {

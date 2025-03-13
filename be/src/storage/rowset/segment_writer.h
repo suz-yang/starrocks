@@ -173,6 +173,9 @@ private:
     // segment total num rows
     uint32_t _num_rows = 0;
 
+    RuntimeProfile::Counter* append_chunk_timer_ = nullptr;
+    RuntimeProfile::Counter* finalize_timer_ = nullptr;
+
     DictColumnsValidMap _global_dict_columns_valid_info;
 };
 
